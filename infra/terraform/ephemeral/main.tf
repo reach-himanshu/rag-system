@@ -112,9 +112,9 @@ resource "azurerm_container_app" "backend" {
   revision_mode                = "Single"
 
   registry {
-    server   = local.acr_server
-    username = local.acr_user
-    password_secret_ref = "acr-password"
+    server               = local.acr_server
+    username             = local.acr_user
+    password_secret_name = "acr-password"
   }
 
   secret {
@@ -160,9 +160,9 @@ resource "azurerm_container_app" "frontend" {
   revision_mode                = "Single"
 
   registry {
-    server   = local.acr_server
-    username = local.acr_user
-    password_secret_ref = "acr-password"
+    server               = local.acr_server
+    username             = local.acr_user
+    password_secret_name = "acr-password"
   }
 
   secret {
