@@ -2,12 +2,10 @@
 
 import json
 import uuid
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from app.db.models import ChatMessage, ChatSession
+from app.db.models import ChatSession
 from app.services import chat_service
 
 
@@ -106,12 +104,12 @@ async def test_creates_new_session_if_none_provided(mock_db, mock_session):
         mock_history.get_or_create_session = AsyncMock(return_value=mock_session)
         mock_history.get_session_history = AsyncMock(return_value=[])
         mock_history.add_message = AsyncMock()
-        
+
         mock_router_agent = AsyncMock()
         mock_router_agent.route.return_value.destination = "rag"
         mock_router_agent.route.return_value.reasoning = "test"
         mock_get_router.return_value = mock_router_agent
-        
+
         mock_search.ainvoke = AsyncMock(return_value="")
 
         mock_pipe1 = MagicMock()
