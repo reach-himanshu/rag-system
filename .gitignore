@@ -63,3 +63,9 @@ logs/
 
 # Uploaded files (local dev)
 uploads/
+
+# act
+.secrets
+# Local Secrets
+.secrets
+.actrc

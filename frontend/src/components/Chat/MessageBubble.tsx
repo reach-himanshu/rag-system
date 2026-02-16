@@ -1,6 +1,5 @@
-import React from 'react';
 import Markdown from 'react-markdown';
-import { Bot, User, StickyNote, Database, MessageSquare } from 'lucide-react';
+import { Bot, User, StickyNote, Database } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Message } from '../../types/chat';
 

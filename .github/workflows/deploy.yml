@@ -94,6 +94,9 @@ jobs:
         run: cd frontend && npm ci
       - name: Run tests
         run: cd frontend && npx jest --passWithNoTests
+      
+      - name: Build Verification
+        run: cd frontend && npm run build
 
   # --- BUILD STAGE ---
   build-and-push:

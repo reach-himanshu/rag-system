@@ -8,7 +8,7 @@ export function useChatStream(sessionId?: string) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [streamingContent, setStreamingContent] = useState("");
-    const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(sessionId);
+    const [currentSessionId, _setCurrentSessionId] = useState<string | undefined>(sessionId);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const sendMessage = useCallback(

@@ -1,5 +1,4 @@
-import React from 'react';
-import { MessageSquare, Plus, LibraryBig, History } from 'lucide-react';
+import { MessageSquare, Plus, LibraryBig } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ChatSession } from '../../types/chat';
 

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X } from 'lucide-react';
-import { Sidebar } from '../layout/Sidebar';
+import { useState, useEffect, useRef } from 'react';
+import { Menu } from 'lucide-react';
+import { Sidebar } from '../Layout/Sidebar';
 import { MessageBubble } from './MessageBubble';
 import { InputArea } from './InputArea';
 import { useChatStream } from '../../hooks/useChatStream';
@@ -36,7 +36,7 @@ export function ChatInterface() {
             <Sidebar
                 sessions={sessions}
                 isOpen={isSidebarOpen}
-                onSelectSession={(id) => console.log("Select", id)}
+                onSelectSession={(id: string) => console.log("Select", id)}
                 onNewChat={clearChat}
                 currentSessionId={undefined}
             />
