@@ -61,7 +61,7 @@ class Settings(BaseSettings):
         )
 
     @property
-    def northwind_database_url(self) -> str:
+    def northwind_database_sync_url(self) -> str:
         """Sync URL for LangChain SQL agent (uses psycopg2 driver)."""
         return (
             f"postgresql://{self.postgres_user}:{self.postgres_password}"

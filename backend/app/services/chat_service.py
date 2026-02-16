@@ -52,7 +52,10 @@ async def process_message_stream(
             decision = await router.route(user_message)
             route_decision = decision.destination
             # Emit routing metadata
-            yield f'{{"type": "metadata", "metadata": {{"route": "{route_decision}", "reasoning": "{decision.reasoning}"}}}}'
+            yield (
+                f'{{"type": "metadata", "metadata": {{"route": "{route_decision}", '
+                f'"reasoning": "{decision.reasoning}"}}}}'
+            )
 
         # 3. Execution Pipeline (RAG vs SQL vs General)
         if route_decision == "sql":
@@ -64,7 +67,12 @@ async def process_message_stream(
             tables = nw_db.list_tables()
             schema_str = nw_db.get_schema(tables) if tables else ""
 
-            llm = ChatOpenAI(model=settings.openai_chat_model, api_key=settings.openai_api_key, temperature=0, streaming=True)
+            llm = ChatOpenAI(
+                model=settings.openai_chat_model,
+                api_key=settings.openai_api_key,
+                temperature=0,
+                streaming=True,
+            )
             chain = text_to_sql_prompt | llm | StrOutputParser()
 
             # Generate SQL
@@ -92,15 +100,26 @@ async def process_message_stream(
             # Retrieve History
             history_orm = await history_service.get_session_history(str(session.id), db, limit=10)
             history_lc = [
-                HumanMessage(content=m.content) if m.role == "user" else AIMessage(content=m.content)
+                (
+                    HumanMessage(content=m.content)
+                    if m.role == "user"
+                    else AIMessage(content=m.content)
+                )
                 for m in history_orm
             ]
 
-            llm = ChatOpenAI(model=settings.openai_chat_model, api_key=settings.openai_api_key, temperature=0, streaming=True)
+            llm = ChatOpenAI(
+                model=settings.openai_chat_model,
+                api_key=settings.openai_api_key,
+                temperature=0,
+                streaming=True,
+            )
             chain = rag_prompt | llm | StrOutputParser()
 
             answer = ""
-            async for chunk in chain.astream({"context": context_str, "history": history_lc, "input": user_message}):
+            async for chunk in chain.astream(
+                {"context": context_str, "history": history_lc, "input": user_message}
+            ):
                 answer += chunk
                 # Escape newlines for JSON usage in data: field
                 safe_chunk = chunk.replace("\n", "\\n").replace('"', '\\"')
@@ -112,12 +131,21 @@ async def process_message_stream(
             # --- GENERAL CHAT PIPELINE ---
             history_orm = await history_service.get_session_history(str(session.id), db, limit=10)
             history_lc = [
-                HumanMessage(content=m.content) if m.role == "user" else AIMessage(content=m.content)
+                (
+                    HumanMessage(content=m.content)
+                    if m.role == "user"
+                    else AIMessage(content=m.content)
+                )
                 for m in history_orm
             ]
             history_lc.append(HumanMessage(content=user_message))
 
-            llm = ChatOpenAI(model=settings.openai_chat_model, api_key=settings.openai_api_key, temperature=0.7, streaming=True)
+            llm = ChatOpenAI(
+                model=settings.openai_chat_model,
+                api_key=settings.openai_api_key,
+                temperature=0.7,
+                streaming=True,
+            )
 
             answer = ""
             async for chunk in llm.astream(history_lc):

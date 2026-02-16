@@ -45,7 +45,7 @@ class TestProcessMessage:
         # 1. Setup History
         # Ensure get_or_create_session is an AsyncMock that returns mock_session
         mock_history.get_or_create_session = AsyncMock(return_value=mock_session)
-        
+
         # Configure add_message to return a dummy assistant message
         assistant_msg = ChatMessage(
             id=uuid.uuid4(),
@@ -82,7 +82,7 @@ class TestProcessMessage:
             assert isinstance(response, MessageResponse)
             assert response.content == "This is the answer."
             assert response.route_decision == "document_search"
-            
+
             # Verify calls
             mock_history.get_or_create_session.assert_awaited_once()
             assert mock_history.add_message.call_count == 2
@@ -99,7 +99,7 @@ class TestProcessMessage:
         mock_history.get_or_create_session = AsyncMock(return_value=mock_session)
         mock_history.get_session_history = AsyncMock(return_value=[])
         mock_search.ainvoke = AsyncMock(return_value="")
-        
+
         assistant_msg = ChatMessage(
             id=uuid.uuid4(),
             role="assistant",

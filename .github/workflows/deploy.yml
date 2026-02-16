@@ -14,29 +14,99 @@ env:
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   RESOURCE_GROUP_STATE: "rg-rag-tfstate"
-  STORAGE_ACCOUNT_STATE: "sttfstatehv3yil" # Hardcoded value from Bootstrap
-  # STORAGE_ACCOUNT_STATE: ${{ secrets.TF_STATE_STORAGE_ACCOUNT }}
+  STORAGE_ACCOUNT_STATE: "sttfstatehv3yil" # Hardcoded val from bootstrap
   CONTAINER_STATE: "tfstate"
 
 jobs:
-  build-and-push:
+  # --- CI STAGE ---
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Ruff
+        run: pip install ruff
+      - name: Run Ruff check
+        run: cd backend && ruff check .
+      - name: Run Ruff format check
+        run: cd backend && ruff format --check .
 
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: test_rag_system
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      qdrant:
+        image: qdrant/qdrant:v1.12.1
+        ports:
+          - 6333:6333
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: cd backend && pip install -e ".[dev]"
+      - name: Run tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: test_rag_system
+          QDRANT_HOST: localhost
+          QDRANT_PORT: 6333
+          API_KEY: test-key
+          OPENAI_API_KEY: sk-test
+          OPENAI_EMBEDDING_MODEL: text-embedding-3-small
+          OPENAI_CHAT_MODEL: gpt-4o
+        run: cd backend && python -m pytest
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      - name: Run tests
+        run: cd frontend && npx jest --passWithNoTests
+
+  # --- BUILD STAGE ---
+  build-and-push:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    steps:
+      - uses: actions/checkout@v4
+      
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Get ACR Login Server
-        id: get_acr
-        run: |
-          # Read from Terraform output would be ideal, but for now we assume naming convention or existing passed variable
-          # Better: Use Permanent Stack output. But Permanent stack deploy happens AFTER?
-          # Actually, Permanent stack should be deployed first.
-          # We can use `terraform output` if state is accessible.
-          echo "Processing..."
 
       - name: Log in to ACR
         run: az acr login --name acrragdevsecup7
@@ -55,7 +125,9 @@ jobs:
           push: true
           tags: acrragdevsecup7.azurecr.io/frontend:latest,acrragdevsecup7.azurecr.io/frontend:${{ github.sha }}
 
+  # --- DEPLOY STAGE ---
   deploy-infra:
+    name: Deploy Infrastructure
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -69,8 +141,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # --- Permanent Stack ---
-      - name: Terraform Init (Permanent)
+      # Permanent Stack
+      - name: TF Init (Permanent)
         working-directory: ./infra/terraform/permanent
         run: |
           terraform init \
@@ -79,12 +151,12 @@ jobs:
             -backend-config="container_name=$CONTAINER_STATE" \
             -backend-config="key=permanent.tfstate"
 
-      - name: Terraform Apply (Permanent)
+      - name: TF Apply (Permanent)
         working-directory: ./infra/terraform/permanent
         run: terraform apply -auto-approve -var="subscription_id=$AZURE_SUBSCRIPTION_ID"
 
-      # --- Ephemeral Stack ---
-      - name: Terraform Init (Ephemeral)
+      # Ephemeral Stack
+      - name: TF Init (Ephemeral)
         working-directory: ./infra/terraform/ephemeral
         run: |
           terraform init \
@@ -93,6 +165,6 @@ jobs:
             -backend-config="container_name=$CONTAINER_STATE" \
             -backend-config="key=ephemeral.tfstate"
 
-      - name: Terraform Apply (Ephemeral)
+      - name: TF Apply (Ephemeral)
         working-directory: ./infra/terraform/ephemeral
         run: terraform apply -auto-approve

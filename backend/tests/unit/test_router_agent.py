@@ -14,7 +14,7 @@ class TestRouterAgent:
     async def test_route_rag_query(self, mock_llm_cls):
         """Should route queries about documents to RAG."""
         # Mock the structured output chain
-        mock_llm_instance = mock_llm_cls.return_value
+        # Mock the structured output chain
         mock_chain = AsyncMock()
         mock_chain.ainvoke.return_value.destination = "rag"
         mock_chain.ainvoke.return_value.reasoning = "User asks about a file."
