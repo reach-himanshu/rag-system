@@ -35,7 +35,7 @@ resource "null_resource" "params_validation" {
   }
 
   provisioner "local-exec" {
-    command     = "powershell -ExecutionPolicy Bypass -File ${path.module}/scripts/check_availability.ps1 -Suffix ${self.triggers.suffix} -Location ${var.location} -Env ${var.env}"
+    command     = "pwsh -ExecutionPolicy Bypass -File ./scripts/check_availability.ps1 -Suffix ${self.triggers.suffix} -Location ${var.location} -Env ${var.env}"
     # working_dir = path.module # Not strictly needed if using absolute path via ${path.module}
   }
 }
