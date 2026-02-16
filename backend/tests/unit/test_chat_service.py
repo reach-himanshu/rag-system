@@ -1,8 +1,8 @@
 """Unit tests for chat service RAG pipeline."""
 
-import uuid
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
+import uuid
 
 import pytest
 
