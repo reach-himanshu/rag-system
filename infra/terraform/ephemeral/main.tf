@@ -140,6 +140,9 @@ resource "azurerm_container_app" "backend" {
   }
 
   template {
+    min_replicas = 0
+    max_replicas = 1
+
     container {
       name   = "backend"
       image  = "${local.acr_server}/backend:latest"
@@ -196,6 +199,9 @@ resource "azurerm_container_app" "frontend" {
   }
 
   template {
+    min_replicas = 0
+    max_replicas = 1
+
     container {
       name   = "frontend"
       image  = "${local.acr_server}/frontend:latest"
