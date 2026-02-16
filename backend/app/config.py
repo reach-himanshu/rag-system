@@ -53,12 +53,7 @@ class Settings(BaseSettings):
     langchain_api_key: str = ""
     langchain_project: str = "rag-system"
 
-    @property
-    def app_database_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
-            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
-        )
+
 
     @property
     def northwind_database_sync_url(self) -> str:

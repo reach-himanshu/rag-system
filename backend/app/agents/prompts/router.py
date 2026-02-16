@@ -10,13 +10,13 @@ Your task is to classify the user's query into one of three categories:
    - Keywords: "summarize", "document", "what does the text say", "pdf", and ANY technical
      term or topic.
    - DEFAULT TO THIS MODE for any factual or technical query.
-   
+
 2. "sql": The user is asking a data analytics question about the Northwind database (business data).
    - Entities: "customers", "orders", "products", "employees", "sales", "revenue", "suppliers".
    - Actions: "count", "list", "how many", "top 5", "average".
 
 3. "general_chat": STRICTLY for greetings (hello, hi), personal questions (who are you),
-   or creative tasks (write a poem). 
+   or creative tasks (write a poem).
    - DO NOT use this for factual queries. If the user asks "what is X?", assume it might be
      in the documents and use "rag".
 

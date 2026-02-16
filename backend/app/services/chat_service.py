@@ -61,7 +61,8 @@ async def process_message_stream(
         if route_decision == "sql":
             # --- SQL PIPELINE ---
             # For SQL, strict streaming is harder because we need the full query first.
-            # We'll stream the "thinking" steps optionally, but for now just yield the result chunked.
+            # We'll stream the "thinking" steps optionally, but for now just yield
+            # the result chunked.
 
             nw_db = get_northwind_db()
             tables = nw_db.list_tables()
