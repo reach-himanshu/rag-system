@@ -1,11 +1,10 @@
 """Unit tests for chat service RAG pipeline."""
 
+import uuid
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
-import uuid
 
 import pytest
-
 from app.api.v1.schemas.chat import MessageResponse
 from app.db.models import ChatMessage, ChatSession
 from app.services import chat_service
