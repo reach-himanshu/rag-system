@@ -26,16 +26,19 @@ async def test_successful_rag_flow(mock_db, mock_session):
     """Should execute full RAG flow: history -> search -> llm -> save."""
     # Setup Mock Chain to yield chunks
     mock_chain = AsyncMock()
+
     async def async_gen(*args, **kwargs):
         yield "chunk1"
         yield "chunk2"
+
     mock_chain.astream = async_gen
 
-    with patch("app.services.chat_service.rag_prompt") as mock_rag_prompt, \
-         patch("app.services.chat_service.history_service") as mock_history, \
-         patch("app.services.chat_service.search_documents") as mock_search, \
-         patch("app.services.chat_service.get_router_agent") as mock_get_router:
-
+    with (
+        patch("app.services.chat_service.rag_prompt") as mock_rag_prompt,
+        patch("app.services.chat_service.history_service") as mock_history,
+        patch("app.services.chat_service.search_documents") as mock_search,
+        patch("app.services.chat_service.get_router_agent") as mock_get_router,
+    ):
         # 1. Setup History
         mock_history.get_or_create_session = AsyncMock(return_value=mock_session)
         mock_history.get_session_history = AsyncMock(return_value=[])
@@ -92,15 +95,18 @@ async def test_successful_rag_flow(mock_db, mock_session):
 async def test_creates_new_session_if_none_provided(mock_db, mock_session):
     """Should create a new session if session_id is None."""
     mock_chain = AsyncMock()
+
     async def async_gen(*args, **kwargs):
         yield "chunk"
+
     mock_chain.astream = async_gen
 
-    with patch("app.services.chat_service.rag_prompt") as mock_rag_prompt, \
-         patch("app.services.chat_service.history_service") as mock_history, \
-         patch("app.services.chat_service.search_documents") as mock_search, \
-         patch("app.services.chat_service.get_router_agent") as mock_get_router:
-
+    with (
+        patch("app.services.chat_service.rag_prompt") as mock_rag_prompt,
+        patch("app.services.chat_service.history_service") as mock_history,
+        patch("app.services.chat_service.search_documents") as mock_search,
+        patch("app.services.chat_service.get_router_agent") as mock_get_router,
+    ):
         mock_history.get_or_create_session = AsyncMock(return_value=mock_session)
         mock_history.get_session_history = AsyncMock(return_value=[])
         mock_history.add_message = AsyncMock()
