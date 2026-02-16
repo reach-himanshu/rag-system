@@ -1,0 +1,101 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  RESOURCE_GROUP_STATE: "rg-rag-tfstate"
+  STORAGE_ACCOUNT_STATE: ${{ secrets.TF_STATE_STORAGE_ACCOUNT }} # From Bootstrap
+  CONTAINER_STATE: "tfstate"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get ACR Login Server
+        id: get_acr
+        run: |
+          # Read from Terraform output would be ideal, but for now we assume naming convention or existing passed variable
+          # Better: Use Permanent Stack output. But Permanent stack deploy happens AFTER?
+          # Actually, Permanent stack should be deployed first.
+          # We can use `terraform output` if state is accessible.
+          echo "Processing..."
+
+      - name: Log in to ACR
+        run: az acr login --name acrragdevsecup7
+
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: acrragdevsecup7.azurecr.io/backend:latest,acrragdevsecup7.azurecr.io/backend:${{ github.sha }}
+
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: acrragdevsecup7.azurecr.io/frontend:latest,acrragdevsecup7.azurecr.io/frontend:${{ github.sha }}
+
+  deploy-infra:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # --- Permanent Stack ---
+      - name: Terraform Init (Permanent)
+        working-directory: ./infra/terraform/permanent
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$RESOURCE_GROUP_STATE" \
+            -backend-config="storage_account_name=$STORAGE_ACCOUNT_STATE" \
+            -backend-config="container_name=$CONTAINER_STATE" \
+            -backend-config="key=permanent.tfstate"
+
+      - name: Terraform Apply (Permanent)
+        working-directory: ./infra/terraform/permanent
+        run: terraform apply -auto-approve -var="subscription_id=$AZURE_SUBSCRIPTION_ID"
+
+      # --- Ephemeral Stack ---
+      - name: Terraform Init (Ephemeral)
+        working-directory: ./infra/terraform/ephemeral
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$RESOURCE_GROUP_STATE" \
+            -backend-config="storage_account_name=$STORAGE_ACCOUNT_STATE" \
+            -backend-config="container_name=$CONTAINER_STATE" \
+            -backend-config="key=ephemeral.tfstate"
+
+      - name: Terraform Apply (Ephemeral)
+        working-directory: ./infra/terraform/ephemeral
+        run: terraform apply -auto-approve

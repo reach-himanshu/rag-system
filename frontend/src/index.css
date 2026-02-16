@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+/* Custom Scrollbar for Chat Area */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Markdown Styles */
+.prose pre {
+    @apply bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto;
+}
+.prose code {
+    @apply bg-slate-100 text-slate-800 px-1 py-0.5 rounded text-sm font-mono;
+}
+.prose pre code {
+    @apply bg-transparent text-inherit p-0;
+}

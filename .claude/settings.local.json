@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(for dir in backend/app backend/app/api backend/app/api/v1 backend/app/api/v1/endpoints backend/app/api/v1/schemas backend/app/core backend/app/services backend/app/agents backend/app/agents/tools backend/app/agents/prompts backend/app/db backend/app/db/migrations backend/app/document_processing backend/tests backend/tests/unit backend/tests/integration)",
+      "Bash(do touch \"$dir/__init__.py\")",
+      "Bash(done)"
+    ]
+  }
+}
