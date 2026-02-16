@@ -187,22 +187,25 @@ resource "azurerm_key_vault" "kv" {
 
   sku_name = "standard"
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
 
-    key_permissions = [
-      "Get",
-    ]
+}
 
-    secret_permissions = [
-      "Get", "List", "Set", "Delete", "Purge", "Recover"
-    ]
+resource "azurerm_key_vault_access_policy" "client" {
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    storage_permissions = [
-      "Get",
-    ]
-  }
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get", "List", "Set", "Delete", "Purge", "Recover"
+  ]
+
+  storage_permissions = [
+    "Get",
+  ]
 }
 
 # --- Store Secrets in Key Vault ---
@@ -210,12 +213,14 @@ resource "azurerm_key_vault_secret" "pg_pass" {
   name         = "Postgres-Admin-Password"
   value        = random_password.pg_password.result
   key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [azurerm_key_vault_access_policy.client]
 }
 
 resource "azurerm_key_vault_secret" "pg_host" {
   name         = "Postgres-Host"
   value        = azurerm_postgresql_flexible_server.pg.fqdn
   key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [azurerm_key_vault_access_policy.client]
 }
 
 # --- Outputs ---
