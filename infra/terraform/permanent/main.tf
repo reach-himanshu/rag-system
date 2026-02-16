@@ -119,6 +119,11 @@ resource "random_password" "pg_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+resource "random_password" "api_key" {
+  length           = 32
+  special          = false
+}
+
 resource "azurerm_postgresql_flexible_server" "pg" {
   name                   = "psql-rag-${var.env}-${random_string.suffix.result}"
   resource_group_name    = azurerm_resource_group.rg.name
@@ -265,4 +270,9 @@ output "key_vault_uri" {
 
 output "postgres_fqdn" {
   value = azurerm_postgresql_flexible_server.pg.fqdn
+}
+
+output "api_key" {
+  value = random_password.api_key.result
+  sensitive = true
 }

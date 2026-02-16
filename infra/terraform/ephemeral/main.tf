@@ -36,7 +36,9 @@ locals {
   acr_pass      = data.terraform_remote_state.permanent.outputs.acr_admin_password
   sa_name       = data.terraform_remote_state.permanent.outputs.storage_account_name
   sa_key        = data.terraform_remote_state.permanent.outputs.storage_account_key
+  sa_key        = data.terraform_remote_state.permanent.outputs.storage_account_key
   pg_host       = data.terraform_remote_state.permanent.outputs.postgres_fqdn
+  api_key       = data.terraform_remote_state.permanent.outputs.api_key
 }
 
 # --- Log Analytics Workspace ---
@@ -136,6 +138,10 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "QDRANT_HOST"
         value = azurerm_container_app.qdrant.name # Internal DNS
+      }
+      env {
+        name        = "API_KEY"
+        secret_name = "rag-api-key"
       }
       # Secrets should be pulled from KeyVault or passed as secrets.
       # Simplified here for brevity.
