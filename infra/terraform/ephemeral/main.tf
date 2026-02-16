@@ -38,6 +38,12 @@ locals {
   sa_key        = data.terraform_remote_state.permanent.outputs.storage_account_key
   pg_host       = data.terraform_remote_state.permanent.outputs.postgres_fqdn
   api_key       = data.terraform_remote_state.permanent.outputs.api_key
+  kv_id         = data.terraform_remote_state.permanent.outputs.key_vault_id
+}
+
+data "azurerm_key_vault_secret" "openai_key" {
+  name         = "OpenAI-API-Key"
+  key_vault_id = local.kv_id
 }
 
 # --- Log Analytics Workspace ---
@@ -128,6 +134,11 @@ resource "azurerm_container_app" "backend" {
     value = local.api_key
   }
 
+  secret {
+    name  = "openai-api-key"
+    value = data.azurerm_key_vault_secret.openai_key.value
+  }
+
   template {
     container {
       name   = "backend"
@@ -146,6 +157,10 @@ resource "azurerm_container_app" "backend" {
       env {
         name        = "API_KEY"
         secret_name = "rag-api-key"
+      }
+      env {
+        name        = "OPENAI_API_KEY"
+        secret_name = "openai-api-key"
       }
       # Secrets should be pulled from KeyVault or passed as secrets.
       # Simplified here for brevity.
