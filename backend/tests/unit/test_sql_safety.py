@@ -1,6 +1,5 @@
 """Unit tests for SQL safety."""
 
-
 from app.core.sql_safety import validate_sql
 
 

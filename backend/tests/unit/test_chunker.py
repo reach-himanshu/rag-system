@@ -1,6 +1,5 @@
 """Unit tests for document text chunker."""
 
-
 from app.document_processing.chunker import CHUNK_OVERLAP, CHUNK_SIZE, TextChunk, chunk_text
 
 

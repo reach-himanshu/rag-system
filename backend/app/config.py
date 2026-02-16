@@ -53,8 +53,6 @@ class Settings(BaseSettings):
     langchain_api_key: str = ""
     langchain_project: str = "rag-system"
 
-
-
     @property
     def northwind_database_sync_url(self) -> str:
         """Sync URL for LangChain SQL agent (uses psycopg2 driver)."""

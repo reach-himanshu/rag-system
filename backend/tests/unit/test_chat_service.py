@@ -52,7 +52,7 @@ class TestProcessMessage:
             content="This is the answer.",
             route_decision="document_search",
             metadata_={"context_source": "document_search"},
-            created_at=datetime.now(UTC)
+            created_at=datetime.now(UTC),
         )
         mock_history.add_message = AsyncMock(return_value=assistant_msg)
         mock_history.get_session_history = AsyncMock(return_value=[])
@@ -105,7 +105,7 @@ class TestProcessMessage:
             content="Answer",
             route_decision="document_search",
             metadata_={},
-            created_at=datetime.now(UTC)
+            created_at=datetime.now(UTC),
         )
         mock_history.add_message = AsyncMock(return_value=assistant_msg)
 

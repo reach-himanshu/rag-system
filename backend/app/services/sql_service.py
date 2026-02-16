@@ -76,9 +76,7 @@ async def process_sql_question(
     chain = text_to_sql_prompt | llm | StrOutputParser()
 
     try:
-        generated_sql = await chain.ainvoke(
-            {"schema": schema_str, "question": user_message}
-        )
+        generated_sql = await chain.ainvoke({"schema": schema_str, "question": user_message})
         generated_sql = generated_sql.replace("```sql", "").replace("```", "").strip()
         logger.info("Generated SQL: %s", generated_sql)
 

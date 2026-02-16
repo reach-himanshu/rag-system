@@ -25,9 +25,11 @@ async def get_or_create_session(session_id: str | None, db: AsyncSession) -> Cha
     if session_id:
         try:
             session_uuid = uuid.UUID(session_id)
-            stmt = select(ChatSession).options(
-                selectinload(ChatSession.messages)
-            ).where(ChatSession.id == session_uuid)
+            stmt = (
+                select(ChatSession)
+                .options(selectinload(ChatSession.messages))
+                .where(ChatSession.id == session_uuid)
+            )
             result = await db.execute(stmt)
             session = result.scalars().first()
             if session:

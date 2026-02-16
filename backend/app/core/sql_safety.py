@@ -43,9 +43,18 @@ def validate_sql(query: str) -> bool:
         # This is a basic check; robust RAG usually relies on DB role permissions too.
         query_upper = query.upper()
         forbidden_keywords = [
-            "INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "TRUNCATE",
-            "GRANT", "REVOKE", "CREATE", "REPLACE",
-            "PG_", "INFORMATION_SCHEMA"
+            "INSERT",
+            "UPDATE",
+            "DELETE",
+            "DROP",
+            "ALTER",
+            "TRUNCATE",
+            "GRANT",
+            "REVOKE",
+            "CREATE",
+            "REPLACE",
+            "PG_",
+            "INFORMATION_SCHEMA",
         ]
 
         for keyword in forbidden_keywords:

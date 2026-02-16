@@ -57,6 +57,7 @@ async def chat(
         # event_str is a JSON string like '{"type": "token", ...}'
         # We need to parse it to aggregate content
         import json
+
         try:
             event = json.loads(event_str)
             if event["type"] == "token":
@@ -69,6 +70,7 @@ async def chat(
         except Exception as e:
             # Log parsing errors but continue consuming
             import logging
+
             logging.getLogger(__name__).warning("Failed to parse SSE event: %s", e)
 
     # We need to construct a MessageResponse
@@ -81,12 +83,12 @@ async def chat(
     # For now, let's construct a response.
 
     return MessageResponse(
-        id="generated-id", # Placeholder, ideally we yield the ID in the stream or return it.
+        id="generated-id",  # Placeholder, ideally we yield the ID in the stream or return it.
         role="assistant",
         content=final_content,
         route_decision=meta.get("route", request.mode),
         metadata=meta,
-        created_at="2024-01-01T00:00:00Z", # Placeholder
+        created_at="2024-01-01T00:00:00Z",  # Placeholder
     )
 
 
