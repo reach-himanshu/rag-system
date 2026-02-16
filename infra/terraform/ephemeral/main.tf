@@ -14,7 +14,7 @@ provider "azurerm" {
   features {}
 }
 
-variable "location" { default = "eastus" }
+variable "location" { default = "eastus2" }
 variable "env" { default = "dev" }
 
 # --- Remote State (Read Permanent Stack) ---
