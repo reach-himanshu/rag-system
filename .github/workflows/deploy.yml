@@ -14,7 +14,8 @@ env:
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   RESOURCE_GROUP_STATE: "rg-rag-tfstate"
-  STORAGE_ACCOUNT_STATE: ${{ secrets.TF_STATE_STORAGE_ACCOUNT }} # From Bootstrap
+  STORAGE_ACCOUNT_STATE: "sttfstatehv3yil" # Hardcoded value from Bootstrap
+  # STORAGE_ACCOUNT_STATE: ${{ secrets.TF_STATE_STORAGE_ACCOUNT }}
   CONTAINER_STATE: "tfstate"
 
 jobs:
