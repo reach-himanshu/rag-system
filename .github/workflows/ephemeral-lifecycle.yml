@@ -1,0 +1,96 @@
+name: Ephemeral Lifecycle (Cost Optimization)
+
+on:
+  schedule:
+    # Destroy at 8:00 PM UTC (Mon-Fri)
+    - cron: '0 20 * * 1-5'
+    # Create at 12:00 PM UTC (Mon-Fri)
+    - cron: '0 12 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'create'
+        type: choice
+        options:
+        - create
+        - destroy
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  RESOURCE_GROUP_STATE: "rg-rag-tfstate"
+  STORAGE_ACCOUNT_STATE: "sttfstatehv3yil"
+  CONTAINER_STATE: "tfstate"
+
+jobs:
+  manage-ephemeral:
+    name: Manage Ephemeral Stack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: TF Init (Ephemeral)
+        working-directory: ./infra/terraform/ephemeral
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$RESOURCE_GROUP_STATE" \
+            -backend-config="storage_account_name=$STORAGE_ACCOUNT_STATE" \
+            -backend-config="container_name=$CONTAINER_STATE" \
+            -backend-config="key=ephemeral.tfstate"
+
+      # --- DESTROY LOGIC ---
+      - name: Destroy Ephemeral Stack
+        if: ${{ github.event.inputs.action == 'destroy' || (github.event_name == 'schedule' && github.event.schedule == '0 20 * * 1-5') }}
+        working-directory: ./infra/terraform/ephemeral
+        run: terraform destroy -auto-approve
+
+      # --- CREATE LOGIC ---
+      - name: Create Ephemeral Stack
+        if: ${{ github.event.inputs.action == 'create' || (github.event_name == 'schedule' && github.event.schedule == '0 12 * * 1-5') }}
+        working-directory: ./infra/terraform/ephemeral
+        run: terraform apply -auto-approve
+
+      # --- NOTIFICATION (On Create Success) ---
+      - name: Get New URLs
+        if: ${{ success() && (github.event.inputs.action == 'create' || (github.event_name == 'schedule' && github.event.schedule == '0 12 * * 1-5')) }}
+        id: urls
+        run: |
+          FRONTEND=$(az containerapp show --name ca-frontend-dev --resource-group rg-rag-dev --query properties.configuration.ingress.fqdn -o tsv)
+          BACKEND=$(az containerapp show --name ca-backend-dev --resource-group rg-rag-dev --query properties.configuration.ingress.fqdn -o tsv)
+          echo "frontend_url=https://$FRONTEND" >> $GITHUB_OUTPUT
+          echo "backend_url=https://$BACKEND/docs" >> $GITHUB_OUTPUT
+
+      - name: Send Email Notification
+        if: ${{ success() && steps.urls.outcome == 'success' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: RAG System - New Environment URLs 🚀
+          to: ${{ secrets.MAIL_TO }}
+          from: RAG Bot
+          body: |
+            Good morning! Your environment is ready.
+            
+            Frontend: ${{ steps.urls.outputs.frontend_url }}
+            Backend Docs: ${{ steps.urls.outputs.backend_url }}
+            
+            (Note: API Keys are safely stored in Key Vault)
