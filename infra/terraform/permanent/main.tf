@@ -21,7 +21,23 @@ resource "random_string" "suffix" {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults          = true
+    }
+  }
+}
+
+resource "null_resource" "params_validation" {
+  triggers = {
+    suffix = random_string.suffix.result
+  }
+
+  provisioner "local-exec" {
+    command     = "powershell -ExecutionPolicy Bypass -File ${path.module}/scripts/check_availability.ps1 -Suffix ${self.triggers.suffix} -Location ${var.location} -Env ${var.env}"
+    # working_dir = path.module # Not strictly needed if using absolute path via ${path.module}
+  }
 }
 
 variable "location" {
@@ -39,6 +55,7 @@ variable "subscription_id" {
 
 # --- Resource Group ---
 resource "azurerm_resource_group" "rg" {
+  depends_on = [null_resource.params_validation]
   name     = "rg-rag-${var.env}"
   location = var.location
 }
