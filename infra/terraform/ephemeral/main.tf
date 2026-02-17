@@ -212,6 +212,10 @@ resource "azurerm_container_app" "frontend" {
         name  = "VITE_API_URL"
         value = "https://${azurerm_container_app.backend.ingress[0].fqdn}/api/v1"
       }
+      env {
+        name        = "VITE_API_KEY"
+        secret_name = "rag-api-key"
+      }
     }
   }
 

@@ -229,6 +229,12 @@ resource "azurerm_key_vault_secret" "pg_host" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
+resource "azurerm_key_vault_secret" "api_key" {
+  name         = "RAG-API-Key"
+  value        = random_password.api_key.result
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
 # --- Outputs ---
 output "resource_group_name" {
   value = azurerm_resource_group.rg.name
