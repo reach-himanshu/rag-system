@@ -198,6 +198,11 @@ resource "azurerm_container_app" "frontend" {
     value = local.acr_pass
   }
 
+  secret {
+    name  = "rag-api-key"
+    value = local.api_key
+  }
+
   template {
     min_replicas = 0
     max_replicas = 1
